@@ -15,6 +15,52 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/download": {
+            "post": {
+                "description": "Download multiple files from URLs and return as a zip file",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/zip"
+                ],
+                "tags": [
+                    "download"
+                ],
+                "summary": "Download files from URLs and zip them",
+                "parameters": [
+                    {
+                        "description": "List of file URLs to download",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.DownloadRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Zip file containing all requested files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.UploadResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.UploadResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/upload": {
             "post": {
                 "description": "Upload a file to S3 bucket with optional custom path and filename",
@@ -73,6 +119,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handler.DownloadRequest": {
+            "type": "object",
+            "properties": {
+                "urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "handler.UploadData": {
             "type": "object",
             "properties": {

@@ -33,12 +33,15 @@ func main() {
 	})
 
 	app.Get("/swagger/*", swagger.HandlerDefault)
+	app.Static("/", "./static")
 
 	api := app.Group("/api")
 	api.Post("/upload", uploadHandler.Upload)
+	api.Post("/download", uploadHandler.Download)
 
 	log.Printf("Server running on http://localhost:%s", cfg.ServerPort)
 	log.Printf("Swagger UI: http://localhost:%s/swagger/", cfg.ServerPort)
+	log.Printf("Streaming Test: http://localhost:%s/", cfg.ServerPort)
 
 	if err := app.Listen(":" + cfg.ServerPort); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

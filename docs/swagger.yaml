@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  handler.DownloadRequest:
+    properties:
+      urls:
+        items:
+          type: string
+        type: array
+    type: object
   handler.UploadData:
     properties:
       filePath:
@@ -27,6 +34,36 @@ info:
   title: S3 File Upload API
   version: "1.0"
 paths:
+  /api/download:
+    post:
+      consumes:
+      - application/json
+      description: Download multiple files from URLs and return as a zip file
+      parameters:
+      - description: List of file URLs to download
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.DownloadRequest'
+      produces:
+      - application/zip
+      responses:
+        "200":
+          description: Zip file containing all requested files
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UploadResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UploadResponse'
+      summary: Download files from URLs and zip them
+      tags:
+      - download
   /api/upload:
     post:
       consumes:
