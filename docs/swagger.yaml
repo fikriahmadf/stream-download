@@ -1,0 +1,67 @@
+basePath: /
+definitions:
+  handler.UploadData:
+    properties:
+      filePath:
+        type: string
+      filename:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    type: object
+  handler.UploadResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handler.UploadData'
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API untuk upload file ke S3 menggunakan LocalStack
+  title: S3 File Upload API
+  version: "1.0"
+paths:
+  /api/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file to S3 bucket with optional custom path and filename
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Custom path in S3 (e.g., 'images/2024')
+        in: formData
+        name: filePath
+        type: string
+      - description: 'Custom filename (default: original filename)'
+        in: formData
+        name: fileName
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.UploadResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.UploadResponse'
+      summary: Upload file to S3
+      tags:
+      - upload
+swagger: "2.0"

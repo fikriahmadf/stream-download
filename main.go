@@ -1,21 +1,46 @@
 package main
 
 import (
-	"fmt"
+	"log"
+
+	"stream-download/config"
+	_ "stream-download/docs"
+	"stream-download/handler"
+	"stream-download/service"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 )
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+// @title S3 File Upload API
+// @version 1.0
+// @description API untuk upload file ke S3 menggunakan LocalStack
+// @host localhost:8080
+// @BasePath /
 
 func main() {
-	//TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-	// to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-	s := "gopher"
-	fmt.Printf("Hello and welcome, %s!\n", s)
+	cfg := config.Load()
 
-	for i := 1; i <= 5; i++ {
-		//TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-		fmt.Println("i =", 100/i)
+	s3Service, err := service.NewS3Service(cfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize S3 service: %v", err)
+	}
+
+	uploadHandler := handler.NewUploadHandler(s3Service)
+
+	app := fiber.New(fiber.Config{
+		BodyLimit: cfg.MaxUploadSize * 1024 * 1024, // MB to bytes
+	})
+
+	app.Get("/swagger/*", swagger.HandlerDefault)
+
+	api := app.Group("/api")
+	api.Post("/upload", uploadHandler.Upload)
+
+	log.Printf("Server running on http://localhost:%s", cfg.ServerPort)
+	log.Printf("Swagger UI: http://localhost:%s/swagger/", cfg.ServerPort)
+
+	if err := app.Listen(":" + cfg.ServerPort); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }

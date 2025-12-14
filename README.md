@@ -15,6 +15,7 @@ Service Go untuk upload file ke Amazon S3 menggunakan LocalStack sebagai emulato
 
 - **Go** - Backend server
 - **Fiber** - HTTP framework
+- **Swagger** - API documentation & testing UI
 - **AWS SDK Go v2** - S3 client
 - **LocalStack** - AWS emulator untuk development
 
@@ -122,6 +123,8 @@ curl -X POST http://localhost:8080/api/upload \
 
 ```bash
 go get github.com/gofiber/fiber/v2
+go get github.com/gofiber/swagger
+go get github.com/swaggo/swag/cmd/swag
 go get github.com/aws/aws-sdk-go-v2
 go get github.com/aws/aws-sdk-go-v2/config
 go get github.com/aws/aws-sdk-go-v2/service/s3
@@ -130,7 +133,13 @@ go get github.com/joho/godotenv
 
 ## Testing
 
-### Manual Test
+### Via Swagger UI
+
+1. Jalankan server: `go run main.go`
+2. Buka browser: `http://localhost:8080/swagger/`
+3. Test upload file langsung dari UI
+
+### Via cURL
 
 ```bash
 # Start server
