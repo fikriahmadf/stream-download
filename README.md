@@ -7,14 +7,14 @@ Service Go untuk upload file ke Amazon S3 menggunakan LocalStack sebagai emulato
 ```
 ┌─────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │   Client    │────▶│   Go Server     │────▶│   LocalStack    │
-│  (Upload)   │     │  (Gin/Fiber)    │     │   (S3 API)      │
+│  (Upload)   │     │    (Fiber)      │     │   (S3 API)      │
 └─────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
 ## Tech Stack
 
 - **Go** - Backend server
-- **Gin** - HTTP framework
+- **Fiber** - HTTP framework
 - **AWS SDK Go v2** - S3 client
 - **LocalStack** - AWS emulator untuk development
 
@@ -22,6 +22,7 @@ Service Go untuk upload file ke Amazon S3 menggunakan LocalStack sebagai emulato
 
 - Go 1.21+
 - LocalStack CLI (`pip install localstack`)
+- awslocal CLI (sudah termasuk dalam LocalStack)
 
 ## Struktur Project
 
@@ -66,7 +67,7 @@ localstack start
 ### 3. Buat S3 Bucket
 
 ```bash
-aws --endpoint-url=http://localhost:4566 s3 mb s3://my-bucket
+awslocal s3 mb s3://my-bucket
 ```
 
 ## API Endpoint
@@ -109,18 +110,18 @@ curl -X POST http://localhost:8080/api/upload \
 
 | Step | Deskripsi | Status |
 |------|-----------|--------|
-| 1 | Setup project structure | ⬜ |
-| 2 | Install dependencies (Gin, AWS SDK) | ⬜ |
-| 3 | Buat config loader | ⬜ |
-| 4 | Buat S3 service | ⬜ |
-| 5 | Buat upload handler | ⬜ |
-| 6 | Setup router & main | ⬜ |
-| 7 | Testing dengan LocalStack | ⬜ |
+| 1 | Setup project structure | Done   |
+| 2 | Install dependencies (Fiber, AWS SDK) | ⬜      |
+| 3 | Buat config loader | ⬜      |
+| 4 | Buat S3 service | ⬜      |
+| 5 | Buat upload handler | ⬜      |
+| 6 | Setup router & main | ⬜      |
+| 7 | Testing dengan LocalStack | ⬜      |
 
 ## Dependencies
 
 ```bash
-go get github.com/gin-gonic/gin
+go get github.com/gofiber/fiber/v2
 go get github.com/aws/aws-sdk-go-v2
 go get github.com/aws/aws-sdk-go-v2/config
 go get github.com/aws/aws-sdk-go-v2/service/s3
@@ -144,7 +145,7 @@ curl -X POST http://localhost:8080/api/upload \
 
 ```bash
 # List files in bucket
-aws --endpoint-url=http://localhost:4566 s3 ls s3://my-bucket/
+awslocal s3 ls s3://my-bucket/
 ```
 
 ## Notes
