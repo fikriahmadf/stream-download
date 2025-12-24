@@ -438,9 +438,13 @@ Hasil test otomatis disimpan di folder `k6/results/`:
 <img width="1274" height="868" alt="Screenshot 2025-12-24 at 18 09 27" src="https://github.com/user-attachments/assets/6b546480-9919-4de5-a0da-0cfdb84316d0" />
 
 ## Example Download Process
+
 [▶ Download Process](assets/readme/pot_download-process.mov)
 
+---
+
 ## Example Extracted Zip Result
+
 [▶ Extracted Zip](assets/readme/pot_extracted-zip.mov)
 
 
