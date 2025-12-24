@@ -437,8 +437,10 @@ Hasil test otomatis disimpan di folder `k6/results/`:
 ## Example S3 Data
 <img width="1274" height="868" alt="Screenshot 2025-12-24 at 18 09 27" src="https://github.com/user-attachments/assets/6b546480-9919-4de5-a0da-0cfdb84316d0" />
 
-## Example Download Processing
-https://github.com/user-attachments/assets/1e5883b1-e84c-4d9d-bbea-d31c3a3918e7
+## Example Download Process
+[▶ Download Process](assets/readme/pot_download-process.mov)
+[▶ Extracted Zip](assets/readme/pot_extracted-zip.mov)
+
 
 https://github.com/user-attachments/assets/2dde4e50-f758-435d-aef6-10b9b58ff6bb
 
