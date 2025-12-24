@@ -1,0 +1,20 @@
+     ✓ status is 200
+     ✓ response is zip
+
+     checks.........................: 100.00% ✓ 74       ✗ 0   
+     data_received..................: 11 GB   32 MB/s
+     data_sent......................: 36 kB   100 B/s
+     http_req_blocked...............: avg=5.98ms   min=3µs    med=44µs    max=108.96ms p(90)=8.65ms   p(95)=31.79ms 
+     http_req_connecting............: avg=1.01ms   min=0s     med=0s      max=24.58ms  p(90)=1.1ms    p(95)=5.28ms  
+   ✗ http_req_duration..............: avg=52.98s   min=4.17s  med=32.14s  max=3m12s    p(90)=2m44s    p(95)=3m5s    
+       { expected_response:true }...: avg=52.98s   min=4.17s  med=32.14s  max=3m12s    p(90)=2m44s    p(95)=3m5s    
+   ✓ http_req_failed................: 0.00%   ✓ 0        ✗ 42  
+     http_req_receiving.............: avg=52.84s   min=4.13s  med=32.12s  max=3m12s    p(90)=2m43s    p(95)=3m5s    
+     http_req_sending...............: avg=47.49ms  min=11µs   med=124.5µs max=1.92s    p(90)=4.3ms    p(95)=9.33ms  
+     http_req_tls_handshaking.......: avg=0s       min=0s     med=0s      max=0s       p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=100.22ms min=4.51ms med=46.16ms max=1.33s    p(90)=182.73ms p(95)=264.02ms
+     http_reqs......................: 42      0.118028/s
+     iteration_duration.............: avg=36.92s   min=5.18s  med=31.06s  max=1m43s    p(90)=1m14s    p(95)=1m24s   
+     iterations.....................: 37      0.103977/s
+     vus............................: 3       min=1      max=20
+     vus_max........................: 20      min=20     max=20
