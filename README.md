@@ -437,4 +437,14 @@ Hasil test otomatis disimpan di folder `k6/results/`:
 ## Example S3 Data
 <img width="1274" height="868" alt="Screenshot 2025-12-24 at 18 09 27" src="https://github.com/user-attachments/assets/6b546480-9919-4de5-a0da-0cfdb84316d0" />
 
+## Example Download Processing
+https://github.com/user-attachments/assets/1e5883b1-e84c-4d9d-bbea-d31c3a3918e7
+
+https://github.com/user-attachments/assets/2dde4e50-f758-435d-aef6-10b9b58ff6bb
+
+## Proof Of Load Test
+<img width="1010" height="952" alt="Screenshot 2025-12-24 at 20 42 21" src="https://github.com/user-attachments/assets/0b70b5d0-745f-4199-a803-6c8aec93a3fe" />
+
+
+
 
