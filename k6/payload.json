@@ -1,0 +1,14 @@
+{
+  "urls": [
+    "http://192.168.1.6:4566/my-bucket/test/1.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/2.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/3.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/4.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/5.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/6.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/7.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/8.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/9.pdf",
+    "http://192.168.1.6:4566/my-bucket/test/10.pdf"
+  ]
+}

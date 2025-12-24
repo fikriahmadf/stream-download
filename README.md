@@ -319,6 +319,105 @@ curl -X POST http://localhost:8080/api/download \
 awslocal s3 ls s3://my-bucket/
 ```
 
+## Load Testing dengan k6
+
+### Prerequisites
+
+Install k6:
+
+```bash
+# macOS
+brew install k6
+
+# Linux
+sudo apt install k6
+
+# atau download dari https://k6.io/docs/getting-started/installation/
+```
+
+### Memory Monitoring
+
+Aplikasi menyediakan endpoint untuk monitoring memory secara real-time:
+
+1. **Memory Stats API**: `GET /debug/memory`
+   ```bash
+   curl http://localhost:8080/debug/memory
+   ```
+
+2. **Memory Monitor UI**: `http://localhost:8080/monitor.html`
+    - Grafik real-time untuk Alloc, Heap, Sys Memory
+    - Goroutines & GC Cycles tracking
+    - Configurable time window (1m, 5m, 10m, 30m)
+
+3. **pprof Profiling**: `http://localhost:8080/debug/pprof/`
+   ```bash
+   go tool pprof http://localhost:8080/debug/pprof/heap
+   ```
+
+### Menjalankan Load Test
+
+1. **Jalankan server**
+   ```bash
+   go run main.go
+   ```
+
+2. **Buka Memory Monitor** (opsional)
+   ```
+   http://localhost:8080/monitor.html
+   ```
+   Klik "Start Monitoring" untuk melihat grafik memory real-time.
+
+3. **Jalankan k6 load test**
+   ```bash
+   k6 run k6/load-test.js
+   ```
+
+### Konfigurasi Load Test
+
+Script `k6/load-test.js` menggunakan skenario berikut:
+
+| Stage | Durasi | Virtual Users | Tujuan |
+|-------|--------|---------------|--------|
+| Ramp up | 30s | 0 → 10 | Pemanasan |
+| Steady | 1m | 10 | Stabilitas beban normal |
+| Ramp up | 30s | 10 → 20 | Naikkan beban |
+| Steady | 1m | 20 | Stabilitas beban tinggi |
+| Ramp down | 30s | 20 → 0 | Turun bertahap |
+
+**Total durasi: ~3.5 menit**
+
+### Custom Base URL
+
+```bash
+k6 run -e BASE_URL=http://192.168.1.100:8080 k6/load-test.js
+```
+
+### Hasil Load Test
+
+Hasil test otomatis disimpan di folder `k6/results/`:
+
+| File | Format | Isi |
+|------|--------|-----|
+| `summary-{timestamp}.json` | JSON | Data mentah untuk analisis |
+| `summary-{timestamp}.txt` | Text | Summary readable |
+
+### Interpretasi Memory Stats
+
+| Metric | Penjelasan |
+|--------|------------|
+| **Alloc** | Memory yang sedang dialokasikan (aktif) |
+| **Heap Alloc** | Heap memory yang digunakan |
+| **Sys Memory** | Total memory dari OS |
+| **Total Alloc** | Total memory yang pernah dialokasikan (kumulatif) |
+| **GC Cycles** | Jumlah Garbage Collection yang sudah berjalan |
+| **Goroutines** | Jumlah goroutine aktif |
+
+**Tanda tidak ada memory leak:**
+- Alloc/Heap kembali rendah setelah test selesai
+- Goroutines kembali ke jumlah baseline
+- GC Cycles bertambah (menunjukkan GC aktif membersihkan memory)
+
+
 ---
 
 ## Notes

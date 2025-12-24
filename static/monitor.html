@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Monitor - Load Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #888;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-card.alloc .stat-value { color: #00d4ff; }
+        .stat-card.heap .stat-value { color: #7b2cbf; }
+        .stat-card.sys .stat-value { color: #ff6b6b; }
+        .stat-card.gc .stat-value { color: #ffd93d; }
+        .stat-card.goroutines .stat-value { color: #6bcb77; }
+        .stat-card.total .stat-value { color: #ff9f43; }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 900px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .chart-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .chart-title {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-start {
+            background: linear-gradient(90deg, #00d4ff, #0099cc);
+            color: #000;
+        }
+        .btn-stop {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+        }
+        .btn-clear {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status.running {
+            background: rgba(107, 203, 119, 0.2);
+            color: #6bcb77;
+        }
+        .status.stopped {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+        .interval-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .interval-control label {
+            color: #888;
+        }
+        .interval-control select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Memory Monitor</h1>
+        <p class="subtitle">Real-time memory monitoring for load testing</p>
+        
+        <div class="controls">
+            <button class="btn-start" id="startBtn" onclick="startMonitoring()">▶ Start Monitoring</button>
+            <button class="btn-stop" id="stopBtn" onclick="stopMonitoring()" disabled>⏹ Stop</button>
+            <button class="btn-clear" onclick="clearData()">🗑 Clear Data</button>
+        </div>
+        
+        <div class="interval-control">
+            <label>Refresh interval:</label>
+            <select id="interval" onchange="updateInterval()">
+                <option value="500">500ms</option>
+                <option value="1000" selected>1 second</option>
+                <option value="2000">2 seconds</option>
+                <option value="5000">5 seconds</option>
+            </select>
+            
+            <label style="margin-left: 20px;">Time window:</label>
+            <select id="timeWindow" onchange="updateTimeWindow()">
+                <option value="60">1 minute</option>
+                <option value="300" selected>5 minutes</option>
+                <option value="600">10 minutes</option>
+                <option value="1800">30 minutes</option>
+                <option value="0">Unlimited</option>
+            </select>
+        </div>
+        
+        <div class="status stopped" id="status">⏸ Monitoring stopped</div>
+        
+        <div class="stats-grid">
+            <div class="stat-card alloc">
+                <div class="stat-value" id="allocMb">-</div>
+                <div class="stat-label">Alloc (MB)</div>
+            </div>
+            <div class="stat-card heap">
+                <div class="stat-value" id="heapAllocMb">-</div>
+                <div class="stat-label">Heap Alloc (MB)</div>
+            </div>
+            <div class="stat-card sys">
+                <div class="stat-value" id="sysMb">-</div>
+                <div class="stat-label">Sys Memory (MB)</div>
+            </div>
+            <div class="stat-card total">
+                <div class="stat-value" id="totalAllocMb">-</div>
+                <div class="stat-label">Total Alloc (MB)</div>
+            </div>
+            <div class="stat-card gc">
+                <div class="stat-value" id="numGc">-</div>
+                <div class="stat-label">GC Cycles</div>
+            </div>
+            <div class="stat-card goroutines">
+                <div class="stat-value" id="goroutines">-</div>
+                <div class="stat-label">Goroutines</div>
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <div class="chart-title">Memory Usage Over Time (MB)</div>
+                <canvas id="memoryChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <div class="chart-title">Goroutines & GC Cycles</div>
+                <canvas id="goroutineChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-wrapper">
+            <div class="chart-title">Heap Memory Details (MB)</div>
+            <canvas id="heapChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let maxDataPoints = 300; // Default 5 minutes at 1s interval
+        let timeWindowSeconds = 300;
+        let monitorInterval = null;
+        let refreshRate = 1000;
+        
+        const labels = [];
+        const allocData = [];
+        const heapAllocData = [];
+        const sysData = [];
+        const goroutineData = [];
+        const gcData = [];
+        const heapInuseData = [];
+        const heapSysData = [];
+        
+        // Memory Chart
+        const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+        const memoryChart = new Chart(memoryCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Alloc',
+                        data: allocData,
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Heap Alloc',
+                        data: heapAllocData,
+                        borderColor: '#7b2cbf',
+                        backgroundColor: 'rgba(123, 44, 191, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Sys',
+                        data: sysData,
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 0 },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#888' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#888', maxTicksLimit: 10 }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#ccc' } }
+                }
+            }
+        });
+        
+        // Goroutine Chart
+        const goroutineCtx = document.getElementById('goroutineChart').getContext('2d');
+        const goroutineChart = new Chart(goroutineCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Goroutines',
+                        data: goroutineData,
+                        borderColor: '#6bcb77',
+                        backgroundColor: 'rgba(107, 203, 119, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'GC Cycles',
+                        data: gcData,
+                        borderColor: '#ffd93d',
+                        backgroundColor: 'rgba(255, 217, 61, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 0 },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#6bcb77' },
+                        title: { display: true, text: 'Goroutines', color: '#6bcb77' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#ffd93d' },
+                        title: { display: true, text: 'GC Cycles', color: '#ffd93d' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#888', maxTicksLimit: 10 }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#ccc' } }
+                }
+            }
+        });
+        
+        // Heap Chart
+        const heapCtx = document.getElementById('heapChart').getContext('2d');
+        const heapChart = new Chart(heapCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Heap Inuse',
+                        data: heapInuseData,
+                        borderColor: '#ff9f43',
+                        backgroundColor: 'rgba(255, 159, 67, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Heap Sys',
+                        data: heapSysData,
+                        borderColor: '#ee5a5a',
+                        backgroundColor: 'rgba(238, 90, 90, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 0 },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#888' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#888', maxTicksLimit: 15 }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#ccc' } }
+                }
+            }
+        });
+        
+        async function fetchMemoryStats() {
+            try {
+                const response = await fetch('/debug/memory');
+                const data = await response.json();
+                
+                const now = new Date().toLocaleTimeString();
+                
+                // Update stats cards
+                document.getElementById('allocMb').textContent = data.alloc_mb.toFixed(2);
+                document.getElementById('heapAllocMb').textContent = data.heap_alloc_mb.toFixed(2);
+                document.getElementById('sysMb').textContent = data.sys_mb.toFixed(2);
+                document.getElementById('totalAllocMb').textContent = data.total_alloc_mb.toFixed(2);
+                document.getElementById('numGc').textContent = data.num_gc;
+                document.getElementById('goroutines').textContent = data.goroutines;
+                
+                // Add data points
+                labels.push(now);
+                allocData.push(data.alloc_mb);
+                heapAllocData.push(data.heap_alloc_mb);
+                sysData.push(data.sys_mb);
+                goroutineData.push(data.goroutines);
+                gcData.push(data.num_gc);
+                heapInuseData.push(data.heap_inuse_mb);
+                heapSysData.push(data.heap_sys_mb);
+                
+                // Limit data points based on time window
+                if (maxDataPoints > 0 && labels.length > maxDataPoints) {
+                    labels.shift();
+                    allocData.shift();
+                    heapAllocData.shift();
+                    sysData.shift();
+                    goroutineData.shift();
+                    gcData.shift();
+                    heapInuseData.shift();
+                    heapSysData.shift();
+                }
+                
+                // Update charts
+                memoryChart.update();
+                goroutineChart.update();
+                heapChart.update();
+                
+            } catch (error) {
+                console.error('Failed to fetch memory stats:', error);
+            }
+        }
+        
+        function startMonitoring() {
+            if (monitorInterval) return;
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('status').className = 'status running';
+            document.getElementById('status').textContent = '🟢 Monitoring active - refreshing every ' + (refreshRate/1000) + 's';
+            
+            fetchMemoryStats();
+            monitorInterval = setInterval(fetchMemoryStats, refreshRate);
+        }
+        
+        function stopMonitoring() {
+            if (monitorInterval) {
+                clearInterval(monitorInterval);
+                monitorInterval = null;
+            }
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('status').className = 'status stopped';
+            document.getElementById('status').textContent = '⏸ Monitoring stopped';
+        }
+        
+        function clearData() {
+            labels.length = 0;
+            allocData.length = 0;
+            heapAllocData.length = 0;
+            sysData.length = 0;
+            goroutineData.length = 0;
+            gcData.length = 0;
+            heapInuseData.length = 0;
+            heapSysData.length = 0;
+            
+            memoryChart.update();
+            goroutineChart.update();
+            heapChart.update();
+            
+            document.getElementById('allocMb').textContent = '-';
+            document.getElementById('heapAllocMb').textContent = '-';
+            document.getElementById('sysMb').textContent = '-';
+            document.getElementById('totalAllocMb').textContent = '-';
+            document.getElementById('numGc').textContent = '-';
+            document.getElementById('goroutines').textContent = '-';
+        }
+        
+        function updateInterval() {
+            refreshRate = parseInt(document.getElementById('interval').value);
+            recalculateMaxDataPoints();
+            if (monitorInterval) {
+                stopMonitoring();
+                startMonitoring();
+            }
+        }
+        
+        function updateTimeWindow() {
+            timeWindowSeconds = parseInt(document.getElementById('timeWindow').value);
+            recalculateMaxDataPoints();
+        }
+        
+        function recalculateMaxDataPoints() {
+            if (timeWindowSeconds === 0) {
+                maxDataPoints = 0; // Unlimited
+            } else {
+                maxDataPoints = Math.ceil((timeWindowSeconds * 1000) / refreshRate);
+            }
+            console.log('Max data points:', maxDataPoints, '(window:', timeWindowSeconds, 's, interval:', refreshRate, 'ms)');
+        }
+        
+        // Initialize on load
+        recalculateMaxDataPoints();
+    </script>
+</body>
+</html>
