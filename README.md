@@ -441,12 +441,6 @@ Hasil test otomatis disimpan di folder `k6/results/`:
 
 [▶ Download Process](assets/readme/pot_download-process.mov)
 
----
-
-## Example Extracted Zip Result
-
-[▶ Extracted Zip](assets/readme/pot_extracted-zip.mov)
-
 
 https://github.com/user-attachments/assets/2dde4e50-f758-435d-aef6-10b9b58ff6bb
 
