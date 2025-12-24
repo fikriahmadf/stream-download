@@ -333,11 +333,9 @@ awslocal s3 ls s3://my-bucket/
 
 ---
 
-## Next Improvement
 
-* Preset throttle via script (`tc-on.sh`, `tc-off.sh`)
-* UUID filename untuk avoid collision
-* Progress tracking per file dalam ZIP
-* Retry & timeout untuk failed downloads
-* Parallel file fetching (dengan limit)
-* Custom ZIP filename dari request
+
+## Example S3 Data
+<img width="1274" height="868" alt="Screenshot 2025-12-24 at 18 09 27" src="https://github.com/user-attachments/assets/6b546480-9919-4de5-a0da-0cfdb84316d0" />
+
+
